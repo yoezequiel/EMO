@@ -1,0 +1,673 @@
+---
+import Layout from "../layouts/Layout.astro";
+import EmoAvatar from "../components/EmoAvatar";
+---
+
+<Layout title="Chat con EMO">
+    <div class="chat-container">
+        <!-- Header con información de EMO -->
+        <header class="header">
+            <div class="emo-header">
+                <div class="emo-title">
+                    <h1>EMO</h1>
+                    <span class="subtitle">Tu compañero inteligente</span>
+                </div>
+                <button id="logout-btn" class="btn-logout">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Avatar de EMO - Principal -->
+        <div class="avatar-section">
+            <EmoAvatar client:load />
+        </div>
+
+        <!-- Chat integrado -->
+        <div class="chat-section">
+            <div id="messages" class="messages"></div>
+
+            <form id="chat-form" class="input-area">
+                <button type="button" id="voice-btn" class="btn-voice">
+                    🎤
+                </button>
+                <input
+                    type="text"
+                    id="message-input"
+                    placeholder="Habla con EMO..."
+                    autocomplete="off"
+                />
+                <button type="submit" class="btn-send">
+                    <span class="send-icon">→</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .chat-container {
+        height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Header moderno */
+    .header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 15px 30px;
+        z-index: 10;
+    }
+
+    .emo-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .emo-title {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .emo-title h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        letter-spacing: 2px;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+    }
+
+    .btn-logout {
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-logout:hover {
+        background: rgba(252, 129, 129, 0.3);
+        border-color: rgba(252, 129, 129, 0.5);
+        transform: scale(1.05);
+    }
+
+    /* Avatar Section - Centro de atención */
+    .avatar-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        min-height: 400px;
+    }
+
+    .avatar-section::before {
+        content: "";
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 70%
+        );
+        border-radius: 50%;
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    /* Chat Section - Minimalista */
+    .chat-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 30px 30px 0 0;
+        display: flex;
+        flex-direction: column;
+        max-height: 400px;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+
+    .messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 3px;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 126, 234, 0.5);
+    }
+
+    /* Input moderno */
+    .input-area {
+        display: flex;
+        gap: 12px;
+        padding: 20px 30px;
+        background: white;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        align-items: center;
+    }
+
+    #message-input {
+        flex: 1;
+        padding: 16px 24px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 25px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    #message-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    #message-input::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-send,
+    .btn-voice {
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .btn-send {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-send:hover {
+        transform: scale(1.1) rotate(10deg);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-send:active {
+        transform: scale(0.95);
+    }
+
+    .send-icon {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .btn-voice {
+        background: rgba(102, 126, 234, 0.1);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-voice:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: var(--primary);
+        transform: scale(1.1);
+    }
+
+    .btn-voice:active {
+        transform: scale(0.95);
+    }
+
+    /* Mensajes - Más elegantes */
+    :global(.message) {
+        display: flex;
+        gap: 10px;
+        animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    :global(.message.user) {
+        justify-content: flex-end;
+    }
+
+    :global(.message-bubble) {
+        max-width: 65%;
+        padding: 14px 20px;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    :global(.message.user .message-bubble) {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 20px 20px 5px 20px;
+    }
+
+    :global(.message.emo .message-bubble) {
+        background: white;
+        color: var(--text-dark);
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 20px 20px 20px 5px;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Indicador de escritura */
+    .typing-indicator {
+        display: flex !important;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
+        margin-bottom: 15px;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 100;
+    }
+
+    .typing-bubble {
+        background: white !important;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        padding: 16px 24px;
+        border-radius: 20px 20px 20px 5px;
+        display: flex !important;
+        gap: 8px;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        min-height: 50px;
+    }
+
+    .typing-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2) !important;
+        animation: typingAnimation 1.4s infinite ease-in-out;
+        opacity: 1 !important;
+    }
+
+    .typing-dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+        0%,
+        60%,
+        100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-12px);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .emo-title h1 {
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+        }
+
+        .avatar-section {
+            min-height: 300px;
+        }
+
+        .chat-section {
+            max-height: 350px;
+        }
+
+        .messages {
+            padding: 20px 15px;
+        }
+
+        .input-area {
+            padding: 15px 15px;
+            gap: 8px;
+        }
+
+        #message-input {
+            padding: 12px 18px;
+            font-size: 0.9rem;
+        }
+
+        .btn-send,
+        .btn-voice {
+            width: 45px;
+            height: 45px;
+            font-size: 1.1rem;
+        }
+
+        :global(.message-bubble) {
+            max-width: 85%;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header {
+            padding: 12px 15px;
+        }
+
+        .emo-title h1 {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+
+<script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/";
+    }
+
+    const messagesContainer = document.getElementById("messages");
+    const chatForm = document.getElementById("chat-form");
+    const messageInput = document.getElementById(
+        "message-input"
+    ) as HTMLInputElement;
+    const voiceBtn = document.getElementById("voice-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    let ws: WebSocket | null = null;
+    let recognition: any = null;
+
+    // Conectar WebSocket
+    function connectWebSocket() {
+        ws = new WebSocket(`ws://localhost:3000`);
+
+        ws.onopen = () => {
+            console.log("WebSocket conectado");
+            ws?.send(JSON.stringify({ type: "auth", token }));
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "state_update") {
+                updateEmoStatus(data.data);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error("Error WebSocket:", error);
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket desconectado");
+            setTimeout(connectWebSocket, 3000);
+        };
+    }
+
+    connectWebSocket();
+
+    // Actualizar estado de EMO (solo para eventos internos del avatar)
+    function updateEmoStatus(state: any) {
+        // Emitir evento para actualizar el avatar
+        const event = new CustomEvent("emo-state-update", {
+            detail: state,
+        });
+        window.dispatchEvent(event);
+    }
+
+    // Mostrar indicador de "pensando"
+    function showTypingIndicator() {
+        console.log("🟢 INICIO showTypingIndicator");
+
+        // Eliminar indicador previo si existe
+        hideTypingIndicator();
+
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "typing-indicator";
+        typingDiv.id = "typing-indicator";
+        // Forzar estilos inline para asegurar visibilidad
+        typingDiv.style.display = "flex";
+        typingDiv.style.opacity = "1";
+        typingDiv.style.visibility = "visible";
+        typingDiv.style.marginBottom = "15px";
+
+        const bubble = document.createElement("div");
+        bubble.className = "typing-bubble";
+        bubble.style.display = "flex";
+        bubble.style.background = "white";
+        bubble.style.padding = "16px 24px";
+        bubble.style.borderRadius = "20px 20px 20px 5px";
+        bubble.style.border = "2px solid rgba(102, 126, 234, 0.3)";
+        bubble.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.15)";
+        bubble.style.gap = "8px";
+        bubble.style.alignItems = "center";
+
+        for (let i = 0; i < 3; i++) {
+            const dot = document.createElement("div");
+            dot.className = "typing-dot";
+            dot.style.width = "10px";
+            dot.style.height = "10px";
+            dot.style.borderRadius = "50%";
+            dot.style.background = "linear-gradient(135deg, #667eea, #764ba2)";
+            dot.style.animation = `typingAnimation 1.4s infinite ease-in-out ${i * 0.2}s`;
+            bubble.appendChild(dot);
+        }
+
+        typingDiv.appendChild(bubble);
+
+        if (messagesContainer) {
+            messagesContainer.appendChild(typingDiv);
+            console.log("✅ Indicador agregado al DOM");
+            console.log(
+                "📦 Estilos del indicador:",
+                window.getComputedStyle(typingDiv).display
+            );
+            console.log(
+                "📦 Elementos en messages:",
+                messagesContainer.children.length
+            );
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        } else {
+            console.error("❌ messagesContainer no encontrado");
+        }
+    }
+
+    // Ocultar indicador de "pensando"
+    function hideTypingIndicator() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    // Agregar mensaje a la UI
+    function addMessage(text: string, isUser: boolean) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${isUser ? "user" : "emo"}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble";
+        bubble.textContent = text;
+
+        messageDiv.appendChild(bubble);
+        messagesContainer?.appendChild(messageDiv);
+        messagesContainer?.scrollTo(0, messagesContainer.scrollHeight);
+
+        // Leer respuesta de EMO con voz
+        if (!isUser && "speechSynthesis" in window) {
+            speakText(text);
+        }
+    }
+
+    // Síntesis de voz
+    function speakText(text: string) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "es-ES";
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Enviar mensaje
+    chatForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        console.log("Formulario enviado");
+
+        const message = messageInput.value.trim();
+        console.log("Mensaje:", message);
+
+        if (!message) return;
+
+        addMessage(message, true);
+        messageInput.value = "";
+
+        // Mostrar indicador de "pensando"
+        console.log("Llamando a showTypingIndicator...");
+        showTypingIndicator();
+        console.log("showTypingIndicator ejecutado");
+
+        try {
+            const response = await fetch(`${API_URL}/api/ai/chat`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ message }),
+            });
+
+            const data = await response.json();
+
+            // Ocultar indicador de "pensando"
+            hideTypingIndicator();
+
+            if (response.ok) {
+                addMessage(data.response, false);
+                if (data.state) {
+                    updateEmoStatus(data.state);
+                }
+            } else {
+                addMessage("Lo siento, hubo un error... 😔", false);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            hideTypingIndicator();
+            addMessage("Error de conexión con el servidor 😔", false);
+        }
+    });
+
+    // Reconocimiento de voz
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+        const SpeechRecognition =
+            (window as any).webkitSpeechRecognition ||
+            (window as any).SpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = "es-ES";
+        recognition.continuous = false;
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            messageInput.value = transcript;
+        };
+
+        voiceBtn?.addEventListener("click", () => {
+            recognition?.start();
+            voiceBtn.textContent = "🎙️";
+            setTimeout(() => {
+                voiceBtn.textContent = "🎤";
+            }, 3000);
+        });
+    }
+
+    // Logout
+    logoutBtn?.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/";
+    });
+
+    // Cargar perfil inicial
+    fetch(`${API_URL}/api/ai/profile`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.state) {
+                updateEmoStatus(data.state);
+            }
+        });
+</script>

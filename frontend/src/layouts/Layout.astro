@@ -1,0 +1,39 @@
+---
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{title} - EMO Web</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            :root {
+                --primary: #667eea;
+                --secondary: #764ba2;
+                --accent: #f093fb;
+                --text-dark: #2d3748;
+                --text-light: #718096;
+                --bg-light: #f7fafc;
+                --border: #e2e8f0;
+            }
+        </style>
+    </head>
+    <body>
+        <slot />
+    </body>
+</html>

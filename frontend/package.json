@@ -1,0 +1,25 @@
+{
+    "name": "emo-web-frontend",
+    "type": "module",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+    },
+    "dependencies": {
+        "astro": "^4.0.0",
+        "@astrojs/react": "^3.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "three": "^0.160.0",
+        "@react-three/fiber": "^8.15.0",
+        "@react-three/drei": "^9.92.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
+        "@types/three": "^0.160.0"
+    }
+}

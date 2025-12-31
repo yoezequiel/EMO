@@ -1,0 +1,278 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Iniciar Sesión">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <h1>🤖 EMO</h1>
+                <p>Tu Robot Social Inteligente</p>
+            </div>
+
+            <div id="auth-forms">
+                <!-- Formulario de Login -->
+                <form id="login-form" class="auth-form">
+                    <h2>Iniciar Sesión</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button
+                    >
+                    <p class="switch-form">
+                        ¿No tienes cuenta? <a href="#" id="show-register"
+                            >Regístrate</a
+                        >
+                    </p>
+                </form>
+
+                <!-- Formulario de Registro -->
+                <form id="register-form" class="auth-form hidden">
+                    <h2>Crear Cuenta</h2>
+                    <div class="form-group">
+                        <label for="register-username">Nombre de usuario</label>
+                        <input type="text" id="register-username" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input
+                            type="password"
+                            id="register-password"
+                            required
+                            minlength="6"
+                        />
+                    </div>
+                    <button type="submit" class="btn btn-primary"
+                        >Registrarse</button
+                    >
+                    <p class="switch-form">
+                        ¿Ya tienes cuenta? <a href="#" id="show-login"
+                            >Inicia sesión</a
+                        >
+                    </p>
+                </form>
+            </div>
+
+            <div id="error-message" class="error-message hidden"></div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .logo {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .logo h1 {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        color: var(--primary);
+    }
+
+    .logo p {
+        color: var(--text-light);
+        font-size: 0.95rem;
+    }
+
+    .auth-form h2 {
+        margin-bottom: 20px;
+        color: var(--text-dark);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+            transform 0.2s,
+            box-shadow 0.2s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .switch-form {
+        text-align: center;
+        margin-top: 20px;
+        color: var(--text-light);
+    }
+
+    .switch-form a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .switch-form a:hover {
+        text-decoration: underline;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .error-message {
+        margin-top: 20px;
+        padding: 12px;
+        background: #fed7d7;
+        color: #c53030;
+        border-radius: 8px;
+        text-align: center;
+    }
+</style>
+
+<script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+    const showRegisterBtn = document.getElementById("show-register");
+    const showLoginBtn = document.getElementById("show-login");
+    const errorMessage = document.getElementById("error-message");
+
+    function showError(message: string) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove("hidden");
+        setTimeout(() => {
+            errorMessage.classList.add("hidden");
+        }, 5000);
+    }
+
+    showRegisterBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        loginForm?.classList.add("hidden");
+        registerForm?.classList.remove("hidden");
+    });
+
+    showLoginBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        registerForm?.classList.add("hidden");
+        loginForm?.classList.remove("hidden");
+    });
+
+    loginForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = (
+            document.getElementById("login-email") as HTMLInputElement
+        ).value;
+        const password = (
+            document.getElementById("login-password") as HTMLInputElement
+        ).value;
+
+        try {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                window.location.href = "/chat";
+            } else {
+                showError(data.error || "Error al iniciar sesión");
+            }
+        } catch (error) {
+            showError("Error de conexión con el servidor");
+        }
+    });
+
+    registerForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = (
+            document.getElementById("register-username") as HTMLInputElement
+        ).value;
+        const email = (
+            document.getElementById("register-email") as HTMLInputElement
+        ).value;
+        const password = (
+            document.getElementById("register-password") as HTMLInputElement
+        ).value;
+
+        try {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                window.location.href = "/chat";
+            } else {
+                showError(data.error || "Error al registrarse");
+            }
+        } catch (error) {
+            showError("Error de conexión con el servidor");
+        }
+    });
+</script>
