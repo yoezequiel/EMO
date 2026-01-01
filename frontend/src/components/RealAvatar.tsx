@@ -54,7 +54,7 @@ function RealModel({
         if (onTouchInteraction) onTouchInteraction(zone);
       }}
     >
-      <primitive object={scene} scale={1.5} position={[0, -1, 0]} />
+      <primitive object={scene} scale={0.01} position={[0, -1, 0]} />
     </group>
   );
 }
@@ -113,7 +113,7 @@ export default function RealAvatar() {
 
       <React.Suspense fallback={<Html center>Cargando modelo...</Html>}>
         <RealModel 
-          url="/models/Dog.glb" 
+          url="/models/Cat.glb" 
           mood={mood} 
           onTouchInteraction={handleInteraction}
         />
@@ -130,4 +130,4 @@ export default function RealAvatar() {
 }
 
 // Pre-carga el modelo
-useGLTF.preload('/models/Dog.glb');
+useGLTF.preload('/models/Cat.glb');

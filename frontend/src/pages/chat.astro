@@ -1,7 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import EmoAvatar from "../components/EmoAvatar";
-import CuteAvatar from "../components/CuteAvatar";
 import TechAvatar from "../components/TechAvatar";
 import RealAvatar from "../components/RealAvatar";
 ---
@@ -35,9 +34,6 @@ import RealAvatar from "../components/RealAvatar";
                 <div id="avatar-emo" class="avatar-wrapper active-avatar">
                     <EmoAvatar client:load />
                 </div>
-                <div id="avatar-cute" class="avatar-wrapper">
-                    <CuteAvatar client:load />
-                </div>
                 <div id="avatar-tech" class="avatar-wrapper">
                     <TechAvatar client:load />
                 </div>
@@ -63,15 +59,6 @@ import RealAvatar from "../components/RealAvatar";
                         <h3>EMO</h3>
                         <p class="avatar-description">Clásico robot esférico</p>
                     </div>
-                    <div class="avatar-option-modal" data-avatar="cute">
-                        <div class="avatar-preview-modal cute-preview">
-                            <div class="preview-cat-head"></div>
-                            <div class="preview-ear-left"></div>
-                            <div class="preview-ear-right"></div>
-                        </div>
-                        <h3>Gatito</h3>
-                        <p class="avatar-description">Robot gatito kawaii</p>
-                    </div>
                     <div class="avatar-option-modal" data-avatar="tech">
                         <div class="avatar-preview-modal tech-preview">
                             <div class="preview-hexagon"></div>
@@ -82,9 +69,9 @@ import RealAvatar from "../components/RealAvatar";
                     </div>
                     <div class="avatar-option-modal" data-avatar="real">
                         <div class="avatar-preview-modal real-preview">
-                            <div class="preview-dog-head"></div>
-                            <div class="preview-ear-flop-left"></div>
-                            <div class="preview-ear-flop-right"></div>
+                            <div class="preview-cat-head"></div>
+                            <div class="preview-ear-left"></div>
+                            <div class="preview-ear-right"></div>
                         </div>
                         <h3>Real</h3>
                         <p class="avatar-description">Modelo 3D Realista</p>
@@ -622,60 +609,6 @@ import RealAvatar from "../components/RealAvatar";
         transform: translateX(-50%);
     }
 
-    /* Cute Preview - Gatito con orejas */
-    .cute-preview {
-        background: linear-gradient(135deg, #ffb6c1, #ff69b4);
-        border-radius: 45%;
-    }
-
-    .preview-cat-head {
-        width: 50px;
-        height: 50px;
-        background: #ffb6c1;
-        border-radius: 50%;
-        position: relative;
-    }
-
-    .preview-cat-head::before,
-    .preview-cat-head::after {
-        content: "";
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: #000;
-        border-radius: 50%;
-        top: 15px;
-    }
-
-    .preview-cat-head::before {
-        left: 12px;
-    }
-
-    .preview-cat-head::after {
-        right: 12px;
-    }
-
-    .preview-ear-left,
-    .preview-ear-right {
-        position: absolute;
-        width: 0;
-        height: 0;
-        border-left: 12px solid transparent;
-        border-right: 12px solid transparent;
-        border-bottom: 20px solid #ffb6c1;
-        top: 15px;
-    }
-
-    .preview-ear-left {
-        left: 20px;
-        transform: rotate(-30deg);
-    }
-
-    .preview-ear-right {
-        right: 20px;
-        transform: rotate(30deg);
-    }
-
     /* Tech Preview - Hexágono futurista */
     .tech-preview {
         background: linear-gradient(135deg, #00ced1, #1e90ff);
@@ -734,56 +667,57 @@ import RealAvatar from "../components/RealAvatar";
         right: -18px;
     }
 
-    /* Real Preview - Perrito */
+    /* Real Preview - Gatito */
     .real-preview {
-        background: linear-gradient(135deg, #8b4513, #d2691e);
+        background: linear-gradient(135deg, #ffb6c1, #ff69b4);
         border-radius: 45%;
     }
 
-    .preview-dog-head {
+    .preview-cat-head {
         width: 50px;
         height: 50px;
-        background: #d2691e;
-        border-radius: 40%;
+        background: #ffb6c1;
+        border-radius: 50%;
         position: relative;
     }
 
-    .preview-dog-head::before,
-    .preview-dog-head::after {
+    .preview-cat-head::before,
+    .preview-cat-head::after {
         content: "";
         position: absolute;
         width: 8px;
         height: 8px;
         background: #000;
         border-radius: 50%;
-        top: 18px;
-    }
-
-    .preview-dog-head::before {
-        left: 12px;
-    }
-    .preview-dog-head::after {
-        right: 12px;
-    }
-
-    .preview-ear-flop-left,
-    .preview-ear-flop-right {
-        position: absolute;
-        width: 15px;
-        height: 25px;
-        background: #8b4513;
-        border-radius: 10px;
         top: 15px;
     }
 
-    .preview-ear-flop-left {
-        left: 10px;
-        transform: rotate(-15deg);
+    .preview-cat-head::before {
+        left: 12px;
+    }
+    .preview-cat-head::after {
+        right: 12px;
     }
 
-    .preview-ear-flop-right {
-        right: 10px;
-        transform: rotate(15deg);
+    .preview-ear-left,
+    .preview-ear-right {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 20px solid #ffb6c1;
+        top: 15px;
+    }
+
+    .preview-ear-left {
+        left: 20px;
+        transform: rotate(-30deg);
+    }
+
+    .preview-ear-right {
+        right: 20px;
+        transform: rotate(30deg);
     }
 
     .avatar-option-modal h3 {
@@ -1160,9 +1094,6 @@ import RealAvatar from "../components/RealAvatar";
         // Ocultar todos
         document
             .getElementById("avatar-emo")
-            ?.classList.remove("active-avatar");
-        document
-            .getElementById("avatar-cute")
             ?.classList.remove("active-avatar");
         document
             .getElementById("avatar-tech")
