@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Box, Cylinder } from '@react-three/drei';
+import { OrbitControls, Sphere, Box, Cylinder, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Avatar estilo "Tech" - diseño futurista y geométrico
@@ -29,9 +29,6 @@ function TechRobot({
         groupRef.current.scale.set(1, 1, 1);
         groupRef.current.position.y = Math.sin(time * 0.6) * 0.08;
       }
-      
-      // Rotación constante suave
-      groupRef.current.rotation.y += 0.003;
     }
 
     // Animación de escaneo de ojos
@@ -276,6 +273,8 @@ function TechRobot({
 export default function TechAvatar() {
   const [mood, setMood] = React.useState('neutral');
   const [energy, setEnergy] = React.useState(70);
+  const [affection, setAffection] = React.useState(50);
+  const [lastInteraction, setLastInteraction] = React.useState<string>('');
 
   React.useEffect(() => {
     const handleStateUpdate = (event: any) => {
@@ -290,6 +289,19 @@ export default function TechAvatar() {
   }, []);
 
   const handleInteraction = (zone: string) => {
+    setLastInteraction(zone);
+    
+    // Actualizar afecto y energía según la zona
+    if (['head', 'scanner'].includes(zone)) {
+      setAffection(prev => Math.min(100, prev + 4));
+      setEnergy(prev => Math.min(100, prev + 2));
+    } else if (zone === 'core') {
+      setEnergy(prev => Math.min(100, prev + 10));
+      setAffection(prev => Math.min(100, prev + 5));
+    } else if (zone === 'thrusters') {
+      setEnergy(prev => Math.min(100, prev + 8));
+    }
+    
     const responses: { [key: string]: string[] } = {
       head: ["Sistemas operativos al 100%", "Escaneando entorno... Todo en orden", "Procesando datos"],
       scanner: ["¡Antena activada! Señal detectada", "Escáner en línea", "Recibiendo transmisión"],
@@ -318,6 +330,30 @@ export default function TechAvatar() {
       <pointLight position={[10, 10, 10]} intensity={1.2} />
       <pointLight position={[-10, 0, -10]} intensity={0.5} color="#00FFFF" />
       <TechRobot mood={mood} energy={energy} onTouchInteraction={handleInteraction} />
+      
+      {/* Panel de estadísticas */}
+      <Html position={[-3, 2.5, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{
+          background: 'rgba(0, 206, 209, 0.85)',
+          color: 'white',
+          padding: '10px 14px',
+          borderRadius: '10px',
+          fontSize: '11px',
+          minWidth: '130px',
+          boxShadow: '0 4px 12px rgba(0,255,255,0.3)',
+          fontFamily: 'monospace',
+          border: '1px solid rgba(0,255,255,0.5)'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.3)', paddingBottom: '4px' }}>⚡ TECH Stats</div>
+          <div>💙 Sistema: {affection}%</div>
+          <div>🔋 Energía: {energy}%</div>
+          <div>🤖 Modo: {mood}</div>
+          {lastInteraction && <div style={{ fontSize: '9px', marginTop: '4px', opacity: 0.8 }}>
+            Última: {lastInteraction === 'head' ? 'cabeza' : lastInteraction === 'scanner' ? 'escáner' : lastInteraction === 'core' ? 'núcleo' : 'propulsores'}
+          </div>}
+        </div>
+      </Html>
+      
       <OrbitControls enableZoom={false} enablePan={false} />
     </Canvas>
   );

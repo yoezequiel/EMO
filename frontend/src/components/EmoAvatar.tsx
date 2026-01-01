@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Box } from '@react-three/drei';
+import { OrbitControls, Sphere, Box, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Componente del robot EMO
@@ -42,8 +42,7 @@ function EmoRobot({
       } else {
         groupRef.current.rotation.z = 0;
         groupRef.current.rotation.x = 0;
-        // Rotación suave normal
-        groupRef.current.rotation.y = Math.sin(time * 0.3) * 0.1;
+        groupRef.current.rotation.y = 0; // Sin rotación automática
       }
     }
 
@@ -209,6 +208,8 @@ function EmoRobot({
 export default function EmoAvatar() {
   const [mood, setMood] = React.useState('neutral');
   const [energy, setEnergy] = React.useState(70);
+  const [affection, setAffection] = React.useState(50);
+  const [lastInteraction, setLastInteraction] = React.useState<string>('');
 
   useEffect(() => {
     // Escuchar actualizaciones de estado desde el WebSocket
@@ -255,6 +256,19 @@ export default function EmoAvatar() {
   };
 
   const handleTouchInteraction = (zone: string) => {
+    setLastInteraction(zone);
+    
+    // Actualizar afecto según la zona
+    if (['head', 'body'].includes(zone)) {
+      setAffection(prev => Math.min(100, prev + 5));
+      setEnergy(prev => Math.max(0, prev - 1));
+    } else if (zone === 'antenna') {
+      setAffection(prev => Math.min(100, prev + 3));
+      setEnergy(prev => Math.min(100, prev + 2));
+    } else if (zone === 'wheels') {
+      setEnergy(prev => Math.min(100, prev + 5));
+    }
+    
     // Obtener una respuesta aleatoria según la zona tocada
     const responses = touchResponses[zone as keyof typeof touchResponses] || [];
     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
@@ -310,6 +324,28 @@ export default function EmoAvatar() {
           energy={energy}
           onTouchInteraction={handleTouchInteraction}
         />
+        
+        {/* Panel de estadísticas */}
+        <Html position={[-3, 2, 0]} style={{ pointerEvents: 'none' }}>
+          <div style={{
+            background: 'rgba(102, 126, 234, 0.85)',
+            color: 'white',
+            padding: '10px 14px',
+            borderRadius: '10px',
+            fontSize: '11px',
+            minWidth: '130px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            fontFamily: 'monospace'
+          }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.3)', paddingBottom: '4px' }}>💙 EMO Stats</div>
+            <div>💖 Afecto: {affection}%</div>
+            <div>⚡ Energía: {energy}%</div>
+            <div>😊 Humor: {mood}</div>
+            {lastInteraction && <div style={{ fontSize: '9px', marginTop: '4px', opacity: 0.8 }}>
+              Última: {lastInteraction === 'head' ? 'cabeza' : lastInteraction === 'body' ? 'cuerpo' : lastInteraction === 'antenna' ? 'antena' : 'ruedas'}
+            </div>}
+          </div>
+        </Html>
         
         <OrbitControls
           enableZoom={false}
