@@ -93,27 +93,56 @@ function CatModel({
     }, 2000);
   };
 
-  // Detectar parte del modelo según posición
+  // Detectar parte del modelo según posición (coordenadas locales)
   const detectZone = (point: THREE.Vector3, objectName: string) => {
-    const y = point.y;
-    const x = point.x;
-    const z = point.z;
+    // Convertir punto de mundo a coordenadas locales del GRUPO completo
+    let localPoint = point.clone();
+    if (group.current) {
+      localPoint = group.current.worldToLocal(point.clone());
+    }
     
-    // Detección mejorada por nombre de objeto y posición
+    // Ajustar por la escala (0.01) y posición ([0, -1, 0]) del modelo
+    // El modelo está escalado a 0.01, así que las coordenadas son muy pequeñas
+    // Compensar la posición Y
+    const y = localPoint.y + 1; // Compensar el offset de -1
+    const x = localPoint.x;
+    const z = localPoint.z;
+    
+    // Debug: descomentar para ver valores
+    console.log(`Click en: x=${x.toFixed(2)}, y=${y.toFixed(2)}, z=${z.toFixed(2)}, nombre="${objectName}"`);
+    
+    // Detección mejorada por nombre de objeto y posición local
     const name = objectName.toLowerCase();
     
-    if (name.includes('head') || name.includes('ear') || name.includes('face') || y > 0.4) {
+    // Prioridad 1: Nombre del objeto (más confiable para modelos GLB)
+    if (name.includes('head') || name.includes('ear') || name.includes('face') || name.includes('skull')) {
       return 'head';
-    } else if (name.includes('tail') || (z < -0.3 && y < 0.2)) {
+    } else if (name.includes('tail')) {
       return 'tail';
-    } else if (name.includes('paw') || name.includes('leg') || name.includes('foot') || y < -0.3) {
+    } else if (name.includes('paw') || name.includes('leg') || name.includes('foot')) {
       return 'paws';
-    } else if (name.includes('back') || (z < 0 && y > 0)) {
+    } else if (name.includes('back') || name.includes('spine')) {
       return 'back';
-    } else if (name.includes('belly') || (y < 0 && Math.abs(x) < 0.2)) {
+    } else if (name.includes('belly') || name.includes('stomach')) {
       return 'belly';
-    } else if (name.includes('chest') || (y > -0.1 && z > 0)) {
+    } else if (name.includes('chest') || name.includes('torso') || name.includes('breast')) {
       return 'chest';
+    }
+    
+    // Prioridad 2: Posición relativa (ajustada para el modelo escalado)
+    // El gato está orientado mirando hacia +Z
+    if (y > 0.6) {
+      return 'head';  // Parte alta
+    } else if (z < -0.2 && y > 0.2 && y < 0.6) {
+      return 'back';  // Parte trasera superior
+    } else if (z < -0.3) {
+      return 'tail';  // Muy atrás
+    } else if (y < 0.1) {
+      return 'paws';  // Parte baja
+    } else if (y > 0.1 && y < 0.4 && Math.abs(x) < 0.15) {
+      return 'belly'; // Centro bajo
+    } else if (z > 0 && y > 0.2 && y < 0.6) {
+      return 'chest'; // Parte frontal media
     }
     
     return 'body';
@@ -167,6 +196,22 @@ function CatModel({
             whiteSpace: 'nowrap'
           }}>
             Tocar {hoveredPart}
+          </div>
+        </Html>
+      )}
+      
+      {/* Debug: Mostrar coordenadas del último click */}
+      {touchEffect.active && touchEffect.position && (
+        <Html position={[0, 1.8, 0]} center>
+          <div style={{
+            background: 'rgba(255,100,0,0.9)',
+            color: 'white',
+            padding: '3px 8px',
+            borderRadius: '8px',
+            fontSize: '10px',
+            whiteSpace: 'nowrap'
+          }}>
+            Click detectado ✓
           </div>
         </Html>
       )}
@@ -311,9 +356,11 @@ export default function CatAvatar() {
 
     // Emitir evento de interacción
     const event = new CustomEvent('cat-interaction', {
-      detail: { zone, position, response, affection, energy, mood: reaction }
+      detail: { zone, position, response, affection, energy, mood: reaction, timestamp: Date.now() }
     });
     window.dispatchEvent(event);
+
+    // NO agregar mensaje aquí - se hace en el listener del chat para evitar duplicados
   };
 
   return (

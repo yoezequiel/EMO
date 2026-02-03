@@ -847,6 +847,43 @@ import CatAvatar from "../components/CatAvatar";
             padding: 25px;
         }
     }
+
+    /* Animación de typing indicator */
+    @keyframes typingAnimation {
+        0%,
+        60%,
+        100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .typing-bubble {
+        display: flex;
+        gap: 8px;
+        padding: 16px 24px;
+        background: white;
+        border-radius: 20px 20px 20px 5px;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .typing-dot {
+        width: 10px;
+        height: 10px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+    }
 </style>
 
 <script>
@@ -1192,4 +1229,47 @@ import CatAvatar from "../components/CatAvatar";
                 updateEmoStatus(data.state);
             }
         });
+
+    // Escuchar eventos de interacción táctil de EMO avatar
+    window.addEventListener("emo-touch", (event: any) => {
+        console.log("🎯 EMO touch event:", event.detail);
+        // El mensaje ya se agrega dentro del componente EmoAvatar
+        // Este listener está aquí para futuros usos (analytics, etc)
+    });
+
+    // Escuchar eventos de interacción del Cat avatar
+    window.addEventListener("cat-interaction", (event: any) => {
+        console.log("🐱 Cat interaction event:", event.detail);
+        const { zone, response } = event.detail;
+
+        // Agregar mensaje visual si no está ya en el chat
+        if (messagesContainer && response) {
+            const existingMessages = Array.from(messagesContainer.children);
+            const lastMessage = existingMessages[existingMessages.length - 1];
+            const lastMessageTime = lastMessage?.getAttribute("data-time");
+            const now = Date.now();
+
+            // Evitar duplicados (si el último mensaje fue hace menos de 500ms)
+            if (!lastMessageTime || now - parseInt(lastMessageTime) > 500) {
+                const messageDiv = document.createElement("div");
+                messageDiv.className = "message emo";
+                messageDiv.setAttribute("data-time", now.toString());
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        ${response}
+                        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 5px;">
+                            (reacción táctil - ${zone})
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+    });
+
+    // Escuchar eventos de Tech avatar (si se implementan en el futuro)
+    window.addEventListener("tech-interaction", (event: any) => {
+        console.log("⚡ Tech interaction event:", event.detail);
+    });
 </script>

@@ -85,9 +85,12 @@ function TechRobot({
     <group ref={groupRef}>
       {/* Cuerpo principal - caja hexagonal */}
       <mesh
+        name="tech-core"
         position={[0, 0, 0]}
         onClick={(e: any) => {
           e.stopPropagation();
+          // Las coordenadas locales del núcleo siempre serán [0,0,0]
+          // ya que es el objeto central
           handleTouch('core');
         }}
         onPointerOver={(e: any) => {
@@ -130,6 +133,7 @@ function TechRobot({
 
       {/* Cabeza/Visor - interactiva */}
       <group 
+        name="tech-head-group"
         position={[0, 1.0, 0]}
         onClick={(e: any) => {
           e.stopPropagation();
@@ -138,7 +142,7 @@ function TechRobot({
         onPointerOver={() => document.body.style.cursor = 'pointer'}
         onPointerOut={() => document.body.style.cursor = 'default'}
       >
-        <Box args={[1.2, 0.5, 0.8]}>
+        <Box name="tech-head" args={[1.2, 0.5, 0.8]}>
           <meshStandardMaterial 
             color={config.bodyColor}
             metalness={0.95}
@@ -147,7 +151,7 @@ function TechRobot({
         </Box>
         
         {/* Visor/Pantalla */}
-        <Box args={[1.0, 0.35, 0.02]} position={[0, 0, 0.42]}>
+        <Box name="tech-visor" args={[1.0, 0.35, 0.02]} position={[0, 0, 0.42]}>
           <meshStandardMaterial 
             color="#000000"
             metalness={0.8}
@@ -177,6 +181,7 @@ function TechRobot({
 
       {/* Antena/Escáner superior - interactiva */}
       <Cylinder 
+        name="tech-scanner-rod"
         args={[0.05, 0.05, 0.4]} 
         position={[0, 1.5, 0]}
         onClick={(e: any) => {
@@ -189,6 +194,7 @@ function TechRobot({
         <meshStandardMaterial color="#ffffff" metalness={0.9} />
       </Cylinder>
       <Sphere 
+        name="tech-scanner-tip"
         args={[0.12, 16, 16]} 
         position={[0, 1.75, 0]}
         onClick={(e: any) => {
@@ -225,6 +231,7 @@ function TechRobot({
 
       {/* Propulsores/Base - interactivos */}
       <Cylinder 
+        name="tech-thruster-left"
         args={[0.25, 0.3, 0.4]} 
         position={[-0.4, -0.9, 0]}
         onClick={(e: any) => {
@@ -242,6 +249,7 @@ function TechRobot({
         />
       </Cylinder>
       <Cylinder 
+        name="tech-thruster-right"
         args={[0.25, 0.3, 0.4]} 
         position={[0.4, -0.9, 0]}
         onClick={(e: any) => {
@@ -318,6 +326,30 @@ export default function TechAvatar() {
       utterance.rate = 1.0;
       utterance.pitch = 0.9;
       window.speechSynthesis.speak(utterance);
+    }
+
+    // Emitir evento de interacción para el chat
+    const event = new CustomEvent('tech-interaction', {
+      detail: { zone, response, affection, energy, mood, timestamp: Date.now() }
+    });
+    window.dispatchEvent(event);
+
+    // Mostrar mensaje en el chat
+    const messagesContainer = document.getElementById('messages');
+    if (messagesContainer) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message emo';
+      messageDiv.setAttribute('data-time', Date.now().toString());
+      messageDiv.innerHTML = `
+        <div class="message-bubble">
+          ${response}
+          <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 5px;">
+            (interacción técnica - ${zone === 'head' ? 'cabeza' : zone === 'scanner' ? 'escáner' : zone === 'core' ? 'núcleo' : 'propulsores'})
+          </div>
+        </div>
+      `;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   };
 

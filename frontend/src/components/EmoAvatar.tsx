@@ -110,11 +110,14 @@ function EmoRobot({
     <group ref={groupRef}>
       {/* Cabeza/Cuerpo principal - Zona interactiva */}
       <Sphere 
+        name="emo-body"
         args={[1, 32, 32]} 
         position={[0, 0, 0]}
         onClick={(e: any) => {
           e.stopPropagation();
-          const y = e.point.y;
+          // Convertir punto de mundo a coordenadas locales del objeto
+          const localPoint = e.object.worldToLocal(e.point.clone());
+          const y = localPoint.y;
           handleTouch(y > 0.3 ? 'head' : 'body');
         }}
         onPointerOver={(e: any) => {
@@ -151,6 +154,7 @@ function EmoRobot({
 
       {/* Antena - Zona interactiva */}
       <Box 
+        name="emo-antenna-rod"
         args={[0.05, 0.5, 0.05]} 
         position={[0, 1.2, 0]}
         onClick={(e: any) => {
@@ -163,6 +167,7 @@ function EmoRobot({
         <meshStandardMaterial color="#ffffff" metalness={0.8} />
       </Box>
       <Sphere 
+        name="emo-antenna-tip"
         args={[0.1, 16, 16]} 
         position={[0, 1.5, 0]}
         onClick={(e: any) => {
@@ -177,6 +182,7 @@ function EmoRobot({
 
       {/* Ruedas (decorativas) - Zonas interactivas */}
       <Sphere 
+        name="emo-wheel-left"
         args={[0.2, 16, 16]} 
         position={[-0.5, -0.9, 0.3]}
         onClick={(e: any) => {
@@ -189,6 +195,7 @@ function EmoRobot({
         <meshStandardMaterial color="#333333" metalness={0.7} />
       </Sphere>
       <Sphere 
+        name="emo-wheel-right"
         args={[0.2, 16, 16]} 
         position={[0.5, -0.9, 0.3]}
         onClick={(e: any) => {
