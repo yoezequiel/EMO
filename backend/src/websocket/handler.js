@@ -25,7 +25,7 @@ export function setupWebSocket(wss) {
                     try {
                         const decoded = jwt.verify(
                             message.token,
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
                         );
                         userId = decoded.userId;
                         clients.set(userId, ws);
@@ -34,11 +34,11 @@ export function setupWebSocket(wss) {
                             JSON.stringify({
                                 type: "auth_success",
                                 message: "Autenticado exitosamente",
-                            })
+                            }),
                         );
 
                         console.log(
-                            `Usuario ${userId} conectado via WebSocket`
+                            `Usuario ${userId} conectado via WebSocket`,
                         );
 
                         // Enviar estado actual
@@ -48,7 +48,7 @@ export function setupWebSocket(wss) {
                             JSON.stringify({
                                 type: "auth_error",
                                 error: "Token inválido",
-                            })
+                            }),
                         );
                     }
                 }
@@ -98,20 +98,42 @@ export function setupWebSocket(wss) {
 async function sendCurrentState(userId, ws) {
     try {
         const profile = await getAIProfileByUserId(userId);
-        if (!profile) return;
+        if (!profile) {
+            console.log(`Perfil no encontrado para usuario ${userId}`);
+            return;
+        }
 
         const state = await getAIState(profile.id);
+
+        // Si no existe el estado, crear uno por defecto
+        if (!state) {
+            console.log(
+                `Estado no encontrado para perfil ${profile.id}, enviando estado por defecto`,
+            );
+            ws.send(
+                JSON.stringify({
+                    type: "state_update",
+                    data: {
+                        mood: 50,
+                        energy: 50,
+                        stress: 0,
+                        confidence: 50,
+                    },
+                }),
+            );
+            return;
+        }
 
         ws.send(
             JSON.stringify({
                 type: "state_update",
                 data: {
-                    mood: state.mood,
-                    energy: state.energy,
-                    stress: state.stress,
-                    trust: state.trust,
+                    mood: state.mood || 50,
+                    energy: state.energy || 50,
+                    stress: state.stress || 0,
+                    confidence: state.confidence || 50,
                 },
-            })
+            }),
         );
     } catch (error) {
         console.error("Error enviando estado:", error);
@@ -128,7 +150,7 @@ export function notifyUser(userId, notification) {
             JSON.stringify({
                 type: "notification",
                 data: notification,
-            })
+            }),
         );
     }
 }
