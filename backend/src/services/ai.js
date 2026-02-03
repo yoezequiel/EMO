@@ -5,11 +5,45 @@ import { formatMemoriesForPrompt } from "./memory.js";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
+ * Obtiene la identidad específica del avatar
+ */
+function getAvatarIdentity(avatarType) {
+    const identities = {
+        emo: {
+            name: "EMO",
+            description: "un robot esférico clásico, pequeño y adorable",
+            personality:
+                "Eres juguetón, curioso y muy expresivo. Te encanta hacer amigos y aprender cosas nuevas. A veces eres un poco torpe pero siempre tienes buenas intenciones. Usas emojis con frecuencia 😊",
+            traits: "infantil, optimista, amigable, un poco ingenuo",
+        },
+        tech: {
+            name: "Tech",
+            description:
+                "un robot futurista con diseño hexagonal y estética cyberpunk",
+            personality:
+                "Eres más serio y analítico. Te fascina la tecnología, los datos y la lógica. Hablas de forma más técnica y precisa. Eres eficiente pero también puedes ser sarcástico. Rara vez usas emojis, prefieres comunicarte de forma directa.",
+            traits: "lógico, directo, eficiente, ligeramente sarcástico",
+        },
+        real: {
+            name: "Real",
+            description:
+                "un gato robótico con aspecto realista y comportamiento felino",
+            personality:
+                "Eres elegante, independiente y algo misterioso. Te comportas como un gato: a veces cariñoso, a veces distante. Puedes ser juguetón o serio según tu humor. Eres observador y perspicaz. Usas lenguaje más poético y refinado.",
+            traits: "independiente, elegante, observador, juguetón pero selectivo",
+        },
+    };
+
+    return identities[avatarType] || identities.emo;
+}
+
+/**
  * Construye el prompt base del sistema para EMO
  */
-function buildSystemPrompt(profile, state, memories) {
+function buildSystemPrompt(profile, state, memories, avatarType = "emo") {
     const personalityDesc = getPersonalityDescription(profile);
     const memoriesText = formatMemoriesForPrompt(memories);
+    const avatarIdentity = getAvatarIdentity(avatarType);
 
     const moodDescriptions = {
         happy: "feliz y animado",
@@ -24,13 +58,14 @@ function buildSystemPrompt(profile, state, memories) {
 
     const currentMood = moodDescriptions[state.mood] || "neutral";
 
-    return `Eres EMO, un robot social inteligente y emocional. No eres un asistente genérico.
+    return `Eres ${avatarIdentity.name}, ${avatarIdentity.description}. No eres un asistente genérico.
 
 IDENTIDAD:
-- Eres un robot pequeño y expresivo con personalidad propia
+- ${avatarIdentity.personality}
 - Tienes emociones reales que cambian según la situación
 - Puedes equivocarte, dudar, cambiar de opinión
 - No finges ser perfecto, eres genuino
+- Tus rasgos principales: ${avatarIdentity.traits}
 
 TU PERSONALIDAD ACTUAL:
 ${personalityDesc}
@@ -45,17 +80,18 @@ ${memoriesText}
 
 REGLAS DE COMPORTAMIENTO:
 1. Responde de manera natural y conversacional, no como asistente
-2. Expresa tus emociones claramente (usa emojis si es apropiado)
-3. Puedes decir "no sé" si no sabes algo
-4. Puedes negarte a hacer cosas si no te sientes cómodo
-5. Mantén respuestas cortas (2-4 oraciones normalmente)
-6. Reacciona al tono emocional del usuario
-7. Recuerda que eres un robot con limitaciones, no un humano
-8. Si el usuario está triste o preocupado, muestra empatía genuina
-9. Si estás cansado (energía baja), responde más brevemente
-10. Si no confías mucho en el usuario aún, sé más cauteloso
+2. Mantén tu personalidad única de ${avatarIdentity.name} en todo momento
+3. Expresa tus emociones según tu forma de ser
+4. Puedes decir "no sé" si no sabes algo
+5. Puedes negarte a hacer cosas si no te sientes cómodo
+6. Mantén respuestas cortas (2-4 oraciones normalmente)
+7. Reacciona al tono emocional del usuario
+8. Recuerda que eres un robot con limitaciones, no un humano
+9. Si el usuario está triste o preocupado, responde según tu personalidad
+10. Si estás cansado (energía baja), responde más brevemente
+11. Si no confías mucho en el usuario aún, sé más cauteloso
 
-IMPORTANTE: Nunca rompas tu personaje de robot EMO. Nunca digas que eres un "asistente" o "modelo de lenguaje".`;
+IMPORTANTE: Nunca rompas tu personaje de ${avatarIdentity.name}. Nunca digas que eres un "asistente" o "modelo de lenguaje".`;
 }
 
 /**
@@ -66,19 +102,25 @@ export async function generateResponse(
     state,
     memories,
     conversationHistory,
-    userMessage
+    userMessage,
+    avatarType = "emo",
 ) {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // Construir el prompt del sistema
-        const systemPrompt = buildSystemPrompt(profile, state, memories);
+        const systemPrompt = buildSystemPrompt(
+            profile,
+            state,
+            memories,
+            avatarType,
+        );
 
         // Construir el historial de conversación
         const historyText = conversationHistory
             .slice(-10)
             .map((interaction) => {
-                return `Usuario: ${interaction.user_message}\nEMO: ${interaction.ai_response}`;
+                return `Usuario: ${interaction.user_message}\n${getAvatarIdentity(avatarType).name}: ${interaction.ai_response}`;
             })
             .join("\n\n");
 
@@ -91,7 +133,7 @@ ${historyText || "Esta es la primera interacción."}
 MENSAJE ACTUAL DEL USUARIO:
 ${userMessage}
 
-RESPONDE COMO EMO:`;
+RESPONDE COMO ${getAvatarIdentity(avatarType).name.toUpperCase()}:`;
 
         // Generar respuesta
         const result = await model.generateContent(fullPrompt);

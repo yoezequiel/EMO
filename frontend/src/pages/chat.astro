@@ -860,13 +860,14 @@ import CatAvatar from "../components/CatAvatar";
     const messagesContainer = document.getElementById("messages");
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById(
-        "message-input"
+        "message-input",
     ) as HTMLInputElement;
     const voiceBtn = document.getElementById("voice-btn");
     const logoutBtn = document.getElementById("logout-btn");
 
     let ws: WebSocket | null = null;
     let recognition: any = null;
+    let currentAvatar: string = localStorage.getItem("selectedAvatar") || "emo";
 
     // Conectar WebSocket
     function connectWebSocket() {
@@ -951,11 +952,11 @@ import CatAvatar from "../components/CatAvatar";
             console.log("✅ Indicador agregado al DOM");
             console.log(
                 "📦 Estilos del indicador:",
-                window.getComputedStyle(typingDiv).display
+                window.getComputedStyle(typingDiv).display,
             );
             console.log(
                 "📦 Elementos en messages:",
-                messagesContainer.children.length
+                messagesContainer.children.length,
             );
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } else {
@@ -1024,7 +1025,10 @@ import CatAvatar from "../components/CatAvatar";
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({
+                    message,
+                    avatarType: currentAvatar,
+                }),
             });
 
             const data = await response.json();
@@ -1083,12 +1087,21 @@ import CatAvatar from "../components/CatAvatar";
     const avatarModal = document.getElementById("avatar-modal");
     const closeModalBtn = document.getElementById("close-modal");
     const avatarOptionsModal = document.querySelectorAll(
-        ".avatar-option-modal"
+        ".avatar-option-modal",
     );
+
+    // Función para limpiar el historial de chat
+    function clearChatHistory() {
+        if (messagesContainer) {
+            messagesContainer.innerHTML = "";
+            console.log("🗑️ Historial de chat limpiado");
+        }
+    }
 
     // Cargar avatar guardado
     function loadSelectedAvatar() {
         const selectedAvatar = localStorage.getItem("selectedAvatar") || "emo";
+        currentAvatar = selectedAvatar;
         console.log("🎭 Cargando avatar:", selectedAvatar);
 
         // Ocultar todos
@@ -1104,7 +1117,7 @@ import CatAvatar from "../components/CatAvatar";
 
         // Mostrar el seleccionado
         const activeAvatar = document.getElementById(
-            `avatar-${selectedAvatar}`
+            `avatar-${selectedAvatar}`,
         );
         if (activeAvatar) {
             activeAvatar.classList.add("active-avatar");
@@ -1135,12 +1148,23 @@ import CatAvatar from "../components/CatAvatar";
     avatarOptionsModal.forEach((option) => {
         option.addEventListener("click", () => {
             avatarOptionsModal.forEach((opt) =>
-                opt.classList.remove("selected")
+                opt.classList.remove("selected"),
             );
             option.classList.add("selected");
             const avatarType = option.getAttribute("data-avatar");
             if (avatarType) {
+                const previousAvatar = currentAvatar;
                 localStorage.setItem("selectedAvatar", avatarType);
+                currentAvatar = avatarType;
+
+                // Si cambió el avatar, limpiar el chat
+                if (previousAvatar !== avatarType) {
+                    clearChatHistory();
+                    console.log(
+                        `🔄 Avatar cambiado de ${previousAvatar} a ${avatarType}`,
+                    );
+                }
+
                 loadSelectedAvatar();
             }
         });
@@ -1157,7 +1181,7 @@ import CatAvatar from "../components/CatAvatar";
     loadSelectedAvatar();
 
     // Cargar perfil inicial
-    fetch(`${API_URL}/api/ai/profile`, {
+    fetch(`${API_URL}/api/ai/profile?avatarType=${currentAvatar}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

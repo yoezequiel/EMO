@@ -22,6 +22,7 @@ const router = express.Router();
 // Obtener perfil de IA del usuario
 router.get("/profile", authenticateToken, async (req, res) => {
     try {
+        const avatarType = req.query.avatarType || "emo";
         const profile = await getAIProfileByUserId(req.user.userId);
 
         if (!profile) {
@@ -30,7 +31,7 @@ router.get("/profile", authenticateToken, async (req, res) => {
                 .json({ error: "Perfil de IA no encontrado" });
         }
 
-        const state = await getAIState(profile.id);
+        const state = await getAIState(profile.id, avatarType);
 
         res.json({
             profile,
@@ -45,6 +46,7 @@ router.get("/profile", authenticateToken, async (req, res) => {
 // Obtener historial de conversación
 router.get("/history", authenticateToken, async (req, res) => {
     try {
+        const avatarType = req.query.avatarType || "emo";
         const profile = await getAIProfileByUserId(req.user.userId);
 
         if (!profile) {
@@ -56,7 +58,11 @@ router.get("/history", authenticateToken, async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const offset = parseInt(req.query.offset) || 0;
 
-        const history = await getRecentInteractions(profile.id, limit);
+        const history = await getRecentInteractions(
+            profile.id,
+            limit,
+            avatarType,
+        );
 
         res.json({ history });
     } catch (error) {
@@ -70,7 +76,7 @@ router.post("/chat", authenticateToken, async (req, res) => {
     const startTime = Date.now();
 
     try {
-        const { message } = req.body;
+        const { message, avatarType = "emo" } = req.body;
 
         if (!message || typeof message !== "string") {
             return res.status(400).json({ error: "Mensaje inválido" });
@@ -84,8 +90,20 @@ router.post("/chat", authenticateToken, async (req, res) => {
                 .json({ error: "Perfil de IA no encontrado" });
         }
 
-        const state = await getAIState(profile.id);
-        const conversationHistory = await getRecentInteractions(profile.id, 10);
+        let state = await getAIState(profile.id, avatarType);
+
+        // Si no existe un estado para este avatar, crear uno
+        if (!state) {
+            const stateId = uuidv4();
+            await createAIState(stateId, profile.id, avatarType);
+            state = await getAIState(profile.id, avatarType);
+        }
+
+        const conversationHistory = await getRecentInteractions(
+            profile.id,
+            10,
+            avatarType,
+        );
 
         // Seleccionar memorias relevantes
         const memories = await selectRelevantMemories(profile.id, message, 5);
@@ -99,12 +117,13 @@ router.post("/chat", authenticateToken, async (req, res) => {
             state,
             memories,
             conversationHistory,
-            message
+            message,
+            avatarType,
         );
 
         // Actualizar estado emocional
         const newState = updateEmotionalState(state, message, aiResult.text);
-        await updateAIState(profile.id, newState);
+        await updateAIState(profile.id, newState, avatarType);
 
         // Evolucionar personalidad
         await evolvePersonality(profile, message, newState);
@@ -125,7 +144,8 @@ router.post("/chat", authenticateToken, async (req, res) => {
                 energy_before: stateBefore.energy,
                 energy_after: newState.energy,
                 response_time_ms: Date.now() - startTime,
-            }
+            },
+            avatarType,
         );
 
         // Incrementar contador de interacciones

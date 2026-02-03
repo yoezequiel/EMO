@@ -71,6 +71,7 @@ async function createTables() {
         CREATE TABLE IF NOT EXISTS ai_state (
             id TEXT PRIMARY KEY,
             ai_profile_id TEXT NOT NULL,
+            avatar_type TEXT DEFAULT 'emo',
             mood INTEGER DEFAULT 50,
             energy INTEGER DEFAULT 50,
             stress INTEGER DEFAULT 0,
@@ -80,6 +81,19 @@ async function createTables() {
             FOREIGN KEY (ai_profile_id) REFERENCES ai_profiles(id)
         )
     `);
+
+    // Agregar columna avatar_type a ai_state si no existe
+    try {
+        await db.execute(`
+            ALTER TABLE ai_state ADD COLUMN avatar_type TEXT DEFAULT 'emo'
+        `);
+        console.log("✅ Columna avatar_type agregada a ai_state");
+    } catch (error) {
+        // La columna ya existe, ignorar el error
+        if (!error.message.includes("duplicate column")) {
+            console.log("ℹ️ Columna avatar_type ya existe en ai_state");
+        }
+    }
 
     // Tabla de memorias (ai_memory)
     await db.execute(`
@@ -112,6 +126,7 @@ async function createTables() {
         CREATE TABLE IF NOT EXISTS interactions (
             id TEXT PRIMARY KEY,
             ai_profile_id TEXT NOT NULL,
+            avatar_type TEXT DEFAULT 'emo',
             user_message TEXT NOT NULL,
             ai_response TEXT NOT NULL,
             mood_before TEXT,
@@ -123,6 +138,19 @@ async function createTables() {
             FOREIGN KEY (ai_profile_id) REFERENCES ai_profiles(id)
         )
     `);
+
+    // Agregar columna avatar_type a interactions si no existe
+    try {
+        await db.execute(`
+            ALTER TABLE interactions ADD COLUMN avatar_type TEXT DEFAULT 'emo'
+        `);
+        console.log("✅ Columna avatar_type agregada a interactions");
+    } catch (error) {
+        // La columna ya existe, ignorar el error
+        if (!error.message.includes("duplicate column")) {
+            console.log("ℹ️ Columna avatar_type ya existe en interactions");
+        }
+    }
 
     // Índice para interactions
     await db.execute(`

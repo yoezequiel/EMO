@@ -168,16 +168,16 @@ export const updateAIProfileTraits = updatePersonalityTraits;
 /**
  * Crea un estado inicial para un perfil de IA
  */
-export async function createAIState(id, aiProfileId) {
+export async function createAIState(id, aiProfileId, avatarType = "emo") {
     try {
         const timestamp = Date.now();
         await db.execute({
             sql: `INSERT INTO ai_state 
-                  (id, ai_profile_id, mood, energy, stress, confidence, updated_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            args: [id, aiProfileId, 50, 50, 0, 50, timestamp],
+                  (id, ai_profile_id, avatar_type, mood, energy, stress, confidence, updated_at) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [id, aiProfileId, avatarType, 50, 50, 0, 50, timestamp],
         });
-        return { id, aiProfileId };
+        return { id, aiProfileId, avatarType };
     } catch (error) {
         console.error("Error al crear estado de IA:", error);
         throw error;
@@ -185,13 +185,13 @@ export async function createAIState(id, aiProfileId) {
 }
 
 /**
- * Obtiene el estado actual de una IA
+ * Obtiene el estado actual de una IA por avatar
  */
-export async function getAIState(aiProfileId) {
+export async function getAIState(aiProfileId, avatarType = "emo") {
     try {
         const result = await db.execute({
-            sql: "SELECT * FROM ai_state WHERE ai_profile_id = ?",
-            args: [aiProfileId],
+            sql: "SELECT * FROM ai_state WHERE ai_profile_id = ? AND avatar_type = ?",
+            args: [aiProfileId, avatarType],
         });
 
         return result.rows[0] || null;
@@ -204,7 +204,7 @@ export async function getAIState(aiProfileId) {
 /**
  * Actualiza el estado emocional de una IA
  */
-export async function updateAIState(aiProfileId, state) {
+export async function updateAIState(aiProfileId, state, avatarType = "emo") {
     try {
         const timestamp = Date.now();
         const { mood, energy, stress, confidence } = state;
@@ -213,7 +213,7 @@ export async function updateAIState(aiProfileId, state) {
             sql: `UPDATE ai_state 
                   SET mood = ?, energy = ?, stress = ?, confidence = ?, 
                       last_interaction = ?, updated_at = ? 
-                  WHERE ai_profile_id = ?`,
+                  WHERE ai_profile_id = ? AND avatar_type = ?`,
             args: [
                 mood,
                 energy,
@@ -222,6 +222,7 @@ export async function updateAIState(aiProfileId, state) {
                 timestamp,
                 timestamp,
                 aiProfileId,
+                avatarType,
             ],
         });
     } catch (error) {
@@ -374,6 +375,7 @@ export async function createInteraction(
     userMessage,
     aiResponse,
     metadata = {},
+    avatarType = "emo",
 ) {
     try {
         const timestamp = Date.now();
@@ -387,12 +389,13 @@ export async function createInteraction(
 
         await db.execute({
             sql: `INSERT INTO interactions 
-                  (id, ai_profile_id, user_message, ai_response, mood_before, mood_after, 
+                  (id, ai_profile_id, avatar_type, user_message, ai_response, mood_before, mood_after, 
                    energy_before, energy_after, timestamp, response_time_ms) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
                 id,
                 aiProfileId,
+                avatarType,
                 userMessage,
                 aiResponse,
                 mood_before,
@@ -404,7 +407,7 @@ export async function createInteraction(
             ],
         });
 
-        return { id, aiProfileId, userMessage, aiResponse };
+        return { id, aiProfileId, userMessage, aiResponse, avatarType };
     } catch (error) {
         console.error("Error al crear interacción:", error);
         throw error;
@@ -412,16 +415,20 @@ export async function createInteraction(
 }
 
 /**
- * Obtiene las interacciones recientes
+ * Obtiene las interacciones recientes filtradas por avatar
  */
-export async function getRecentInteractions(aiProfileId, limit = 10) {
+export async function getRecentInteractions(
+    aiProfileId,
+    limit = 10,
+    avatarType = "emo",
+) {
     try {
         const result = await db.execute({
             sql: `SELECT * FROM interactions 
-                  WHERE ai_profile_id = ? 
+                  WHERE ai_profile_id = ? AND avatar_type = ?
                   ORDER BY timestamp DESC 
                   LIMIT ?`,
-            args: [aiProfileId, limit],
+            args: [aiProfileId, avatarType, limit],
         });
         return result.rows.reverse(); // Orden cronológico
     } catch (error) {
